@@ -71,7 +71,12 @@ public class savedata
 	public string savename = "save2";
     public float healthpoints = 100f;
     public float speed = 5f;
+    public float speedmulti = 2f;
     public float jumpstrength = 5f;
     public float dmg = 1.5f;
-	public float staminause = 1.5f;
+	public float staminause = 15f;
+	
+public float dashSpeed = 20f;
+public float dashCooldown = 0.5f;
+
 }

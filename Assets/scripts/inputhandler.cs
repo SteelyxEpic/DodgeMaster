@@ -1,15 +1,15 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using System.Collections.Generic;
 
 public class inputhandler : MonoBehaviour
 {
+    public Dictionary<string, bool> inputs = new Dictionary<string, bool>();
     [SerializeField] private PlayerInput playerInput;
+    public bool sprint;
 
     public Vector2 move;
-    public bool shoot;
-    public bool jump;
-    public bool reload;
-    public bool interact;
+    public Vector2 mousepos;
 
     InputAction moveAction;
     InputAction shootAction;
@@ -17,6 +17,7 @@ public class inputhandler : MonoBehaviour
     InputAction shooterAction;
     InputAction reloadAction;
     InputAction InteractAction;
+    InputAction SprintAction;
 
     public static inputhandler ins;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -36,6 +37,7 @@ public class inputhandler : MonoBehaviour
         jumpAction = playerInput.actions["Jump"];
         reloadAction = playerInput.actions["reload"];
         InteractAction = playerInput.actions["Interact"];
+        SprintAction = playerInput.actions["Sprint"];
         Debug.Log("Input Handler Awake");
     }
 
@@ -43,9 +45,11 @@ public class inputhandler : MonoBehaviour
     void Update()
     {
         move = moveAction.ReadValue<Vector2>();
-        shoot = shootAction.IsPressed();
-        jump = jumpAction.triggered;
-        reload = reloadAction.triggered;
-        interact = InteractAction.triggered;
+        inputs["shoot"] = shootAction.IsPressed();
+        inputs["jump"] = jumpAction.triggered;
+        inputs["reload"] = reloadAction.triggered;
+        inputs["interact"] = InteractAction.triggered;
+        inputs["Sprint"] = SprintAction.IsPressed();
+        mousepos = Camera.main.ScreenToWorldPoint(Mouse.current.position.ReadValue());
     }
 }
