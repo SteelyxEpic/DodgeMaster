@@ -7,4 +7,6 @@ public class Weapon : ScriptableObject
     public string description;
     public int damage;
     public float range;
+    public float attackSpeed = 1f;
+    public float attackRate = 1f;
 }
