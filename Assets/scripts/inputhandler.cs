@@ -18,6 +18,7 @@ public class inputhandler : MonoBehaviour
     InputAction reloadAction;
     InputAction InteractAction;
     InputAction SprintAction;
+    InputAction GrappleAction;
 
     public static inputhandler ins;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -38,6 +39,7 @@ public class inputhandler : MonoBehaviour
         reloadAction = playerInput.actions["reload"];
         InteractAction = playerInput.actions["Interact"];
         SprintAction = playerInput.actions["Sprint"];
+        GrappleAction = playerInput.actions["1"];
         Debug.Log("Input Handler Awake");
     }
 
@@ -50,6 +52,8 @@ public class inputhandler : MonoBehaviour
         inputs["reload"] = reloadAction.triggered;
         inputs["interact"] = InteractAction.triggered;
         inputs["Sprint"] = SprintAction.IsPressed();
+        inputs["Grapple"] = GrappleAction.triggered;
+        inputs["Grappling"] = GrappleAction.IsPressed();
         mousepos = Camera.main.ScreenToWorldPoint(Mouse.current.position.ReadValue());
     }
 }

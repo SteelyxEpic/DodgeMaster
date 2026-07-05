@@ -8,8 +8,10 @@ public class playermovement : MonoBehaviour
     public float range = 5f; // Range
     public float combo = 0; // Combo
     public CircleCollider2D col; // Collider of the player
+    public grappler grapple; // Grappler script reference
     public Weapon weapon;
     public LayerMask dashLayer;
+    public LayerMask grappleLayer;
     private Rigidbody2D rb;
     private bool[] cooldown = new bool[3]; // Assuming 3 different cooldowns
     private float speedmulti = 1f;
@@ -48,18 +50,29 @@ public class playermovement : MonoBehaviour
     // Update is called once per frame
     void LateUpdate()
     {
-        if (inputhandler.ins.inputs["Sprint"] && currentState != PlayerState.Dashing) {
+        if (currentState == PlayerState.Dashing) {
+            return; // Skip movement and other actions while dashing
+        }
+        if (inputhandler.ins.inputs["Grapple"] && !isGrounded() && !cooldown[2]) {
+            grapple.enabled = true; // Enable the grappler script
+            cooldown[2] = true;
+            StartCoroutine(Cooldown(2, 1/weapon.attackRate));
+        }
+        if (inputhandler.ins.inputs["Sprint"]) {
             speedmulti = save.ins.activesave.speedmulti;
         } else {
             speedmulti = 1f;
         }
-        if (currentState != PlayerState.Dashing){
-            rb.linearVelocity = new Vector2(inputhandler.ins.move.normalized.x * save.ins.activesave.speed * speedmulti, rb.linearVelocity.y);
+        if (PlayerState.Running == currentState && UIStuff.ins.energybar.value > 0) {
+            UIStuff.ins.energybar.value -= save.ins.activesave.staminause * Time.deltaTime;
+        }
+        if(!grapple.enabled)rb.linearVelocity = new Vector2(inputhandler.ins.move.normalized.x * save.ins.activesave.speed * speedmulti, rb.linearVelocity.y);
         if(inputhandler.ins.move.magnitude > 0) {
             currentState = speedmulti == 1 ? PlayerState.Moving : PlayerState.Running;
+            
         } else  {
             currentState = PlayerState.Idle;
-        }}
+        }
         if(inputhandler.ins.inputs["jump"] && isGrounded()) {
             rb.AddForce(Vector2.up * save.ins.activesave.jumpstrength, ForceMode2D.Impulse);
         }
@@ -75,7 +88,7 @@ public class playermovement : MonoBehaviour
                 UIStuff.ins.energybar.value -= save.ins.activesave.staminause;
                     cooldown[1] = true;
             }
-            else if (currentState != PlayerState.Dashing && !cooldown[0])
+            else if (!cooldown[0])
             {
                 GetComponent<Animator>().SetTrigger("attack");
                 cooldown[0] = true;
@@ -114,9 +127,9 @@ IEnumerator DashTowards(Vector2 target, bool hit)
 
     rb.linearVelocity = Vector2.zero;
     if (hit) {
-        col.gameObject.SetActive(true);
+        col.enabled = true;
+        GetComponent<Animator>().SetTrigger("dash");
         yield return follower.ins.Shake(0.1f, 0.25f);
-
     }
     currentState = PlayerState.Idle;
     yield return Cooldown(1, save.ins.activesave.dashCooldown);
