@@ -2,18 +2,21 @@ using UnityEngine;
 
 public class attack : StateMachineBehaviour
 {
+    bool hasTriggered = false;
     // OnStateEnter is called when a transition starts and the state machine starts to evaluate this state
     override public void OnStateEnter(Animator animator, AnimatorStateInfo stateInfo, int layerIndex)
     {
-
+hasTriggered = false;
     }
 
     // OnStateUpdate is called on each Update frame between OnStateEnter and OnStateExit callbacks
     override public void OnStateUpdate(Animator animator, AnimatorStateInfo stateInfo, int layerIndex)
     {
-           if (stateInfo.normalizedTime >= 0.5f && stateInfo.normalizedTime <= 0.75f)
+           if (stateInfo.normalizedTime >= 0.5f && stateInfo.normalizedTime <= 0.75f && !hasTriggered)
         {
+            UIStuff.ins.overheatDisplayTrigger();
             animator.gameObject.GetComponent<playermovement>().col.enabled = true;
+            hasTriggered = true;
         }
     }
 

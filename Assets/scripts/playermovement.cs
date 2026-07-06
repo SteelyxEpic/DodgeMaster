@@ -5,6 +5,7 @@ public class playermovement : MonoBehaviour
 {
     public static playermovement ins;
     public float speed = 5f; // Speed of the player movement
+    public bool overheated = false; // Overheat status
     public float range = 5f; // Range
     public float combo = 0; // Combo
     public CircleCollider2D col; // Collider of the player

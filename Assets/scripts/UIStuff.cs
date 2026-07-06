@@ -9,6 +9,7 @@ public class UIStuff : MonoBehaviour
     public GameObject cooldown;
     public GameObject cooldownprefab;
     public GameObject comboDisplay;
+    public GameObject overheatDisplay;
     private void Awake()
     {
         if (ins == null)
@@ -42,5 +43,21 @@ public class UIStuff : MonoBehaviour
         cd.GetComponent<Animator>().SetFloat("Speed", 1/time);
         yield return new WaitForSeconds(time);
         Destroy(cd);
+    }
+    public void overheatDisplayTrigger() {
+        overheatDisplay.SetActive(true);
+        overheatDisplay.GetComponent<Slider>().value += 100f/playermovement.ins.weapon.overheatThreshold;
+        if (overheatDisplay.GetComponent<Slider>().value >= 100f) {
+            playermovement.ins.overheated = true;
+            StartCoroutine(overheatCooldown(playermovement.ins.weapon.overheatCoolingTime));
+        }
+    }
+    public IEnumerator overheatCooldown(float time) {
+        while (overheatDisplay.GetComponent<Slider>().value > 0f) {
+            overheatDisplay.GetComponent<Slider>().value -= 100f/playermovement.ins.weapon.overheatCoolingTime * Time.deltaTime;
+            yield return null;
+        }
+        playermovement.ins.overheated = false;
+        overheatDisplay.GetComponent<Slider>().value = 0f;
     }
 }
