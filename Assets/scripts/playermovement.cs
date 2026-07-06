@@ -15,12 +15,23 @@ public class playermovement : MonoBehaviour
     private Rigidbody2D rb;
     private bool[] cooldown = new bool[3]; // Assuming 3 different cooldowns
     private float speedmulti = 1f;
+
+    [Header("Grapple Handoff")]
+    // How long after releasing the grapple that input movement eases back in
+    // instead of instantly overwriting swing momentum.
+    public float PGMT = 0.35f;
+    private float postGrappleMomentumTime = 0.35f;
+    // How quickly input regains control during that window (higher = snappier).
+    public float momentumRegainRate = 6f;
+    private float grappleReleaseTime = -999f;
+
     public enum PlayerState
     {
         Idle,
         Moving,
         Dashing,
-        Running
+        Running,
+        Grappling
     }
     public PlayerState currentState = PlayerState.Idle;
     private void Awake()
@@ -47,6 +58,14 @@ public class playermovement : MonoBehaviour
         col.radius = weapon.range;
         GetComponent<Animator>().SetFloat("AttackSpeed", weapon.attackSpeed);
     }
+
+    // Called by grappler.OnDisable() so we know when to start easing input back in.
+    public void NotifyGrappleReleased()
+    {
+        postGrappleMomentumTime = PGMT * Mathf.Sqrt(rb.linearVelocity.magnitude);
+        grappleReleaseTime = Time.time;
+    }
+
     // Update is called once per frame
     void LateUpdate()
     {
@@ -55,6 +74,7 @@ public class playermovement : MonoBehaviour
         }
         if (inputhandler.ins.inputs["Grapple"] && !isGrounded() && !cooldown[2]) {
             grapple.enabled = true; // Enable the grappler script
+            currentState = PlayerState.Grappling;
             cooldown[2] = true;
             StartCoroutine(Cooldown(2, 1/weapon.attackRate));
         }
@@ -66,15 +86,48 @@ public class playermovement : MonoBehaviour
         if (PlayerState.Running == currentState && UIStuff.ins.energybar.value > 0) {
             UIStuff.ins.energybar.value -= save.ins.activesave.staminause * Time.deltaTime;
         }
-        if(!grapple.enabled)rb.linearVelocity = new Vector2(inputhandler.ins.move.normalized.x * save.ins.activesave.speed * speedmulti, rb.linearVelocity.y);
+
+        if (grapple.enabled)
+        {
+            // The grappler fully owns rb.linearVelocity while active -- don't fight it.
+            // Still let facing update below so aiming/looking works mid-swing.
+            FaceTarget();
+            return;
+        }
+
+        bool inMomentumWindow = Time.time - grappleReleaseTime < postGrappleMomentumTime;
+        float targetX = inputhandler.ins.move.normalized.x * save.ins.activesave.speed * speedmulti;
+
+        if (inMomentumWindow)
+        {
+            // Ease input back in instead of overwriting swing momentum instantly --
+            // this is what lets a well-timed grapple release actually carry speed.
+            float t = 1f - Mathf.Exp(-momentumRegainRate * Time.deltaTime);
+            rb.linearVelocity = new Vector2(Mathf.Lerp(rb.linearVelocity.x, targetX, t), rb.linearVelocity.y);
+        }
+        else
+        {
+            rb.linearVelocity = new Vector2(targetX, rb.linearVelocity.y);
+        }
+
         if(inputhandler.ins.move.magnitude > 0) {
             currentState = speedmulti == 1 ? PlayerState.Moving : PlayerState.Running;
             
         } else  {
             currentState = PlayerState.Idle;
         }
-        if(inputhandler.ins.inputs["jump"] && isGrounded()) {
+        if(inputhandler.ins.inputs["jump"]) if(isGrounded()) {
             rb.AddForce(Vector2.up * save.ins.activesave.jumpstrength, ForceMode2D.Impulse);
+        }else if (!cooldown[1] && UIStuff.ins.energybar.value >= save.ins.activesave.staminause) {
+            Debug.DrawRay(transform.position, Vector2.right * Mathf.Sign(rb.linearVelocity.x) * weapon.range * range, Color.red);
+                RaycastHit2D hit = Physics2D.Raycast(transform.position, Vector2.right  * Mathf.Sign(rb.linearVelocity.x), weapon.range * range, dashLayer);
+                if (hit.collider != null) {
+                    StartCoroutine(DashTowards(hit.point, true));
+                }else {
+                   StartCoroutine(DashTowards((Vector2)transform.position + Vector2.right * Mathf.Sign(rb.linearVelocity.x) * weapon.range * range, false));
+                }
+                UIStuff.ins.energybar.value -= save.ins.activesave.staminause;
+                    cooldown[1] = true;
         }
         if (inputhandler.ins.inputs["shoot"] && weapon != null ) {
             if(currentState == PlayerState.Running  && UIStuff.ins.energybar.value >= save.ins.activesave.staminause && !cooldown[1]){
@@ -95,12 +148,18 @@ public class playermovement : MonoBehaviour
                 StartCoroutine(Cooldown(0, 1/weapon.attackRate));
             }
         }
+        FaceTarget();
+    }
+
+    private void FaceTarget()
+    {
         if (inputhandler.ins.mousepos.x > transform.position.x) {
             transform.localScale = new Vector3(1, 1, 1);
         } else {
             transform.localScale = new Vector3(-1, 1, 1);
         }
     }
+
     public bool isGrounded() {
         Debug.DrawRay(transform.position, Vector2.down * 1.1f, Color.red);
         return Physics2D.Raycast(transform.position, Vector2.down, 1.1f, LayerMask.GetMask("Ground"));
@@ -108,6 +167,7 @@ public class playermovement : MonoBehaviour
     public void recieved(Collider2D other) {
             Debug.Log("Hit Enemy");
             combo++;
+            UIStuff.ins.comboDisplayTrigger(combo.ToString());
     }
     
 IEnumerator Cooldown(int index, float time) {

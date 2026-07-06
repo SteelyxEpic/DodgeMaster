@@ -16,5 +16,5 @@ MonoBehaviour:
   description: 
   damage: 0
   range: 2
-  attackSpeed: 2
-  attackRate: 1
+  attackSpeed: 5
+  attackRate: 5
