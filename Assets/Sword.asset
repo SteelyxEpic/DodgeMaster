@@ -16,5 +16,7 @@ MonoBehaviour:
   description: 
   damage: 0
   range: 2
-  attackSpeed: 5
-  attackRate: 5
+  attackSpeed: 1
+  attackRate: 1
+  overheatThreshold: 20
+  overheatCoolingTime: 1
