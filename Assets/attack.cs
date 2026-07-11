@@ -2,28 +2,43 @@ using UnityEngine;
 
 public class attack : StateMachineBehaviour
 {
+    public bool dashAttack = false;
+    public bool smashAttack = false;
+    public float time = 0.5f;
     bool hasTriggered = false;
     // OnStateEnter is called when a transition starts and the state machine starts to evaluate this state
     override public void OnStateEnter(Animator animator, AnimatorStateInfo stateInfo, int layerIndex)
-    {
-hasTriggered = false;
+    {  
+        if (smashAttack) animator.SetFloat("smashspeed", animator.GetFloat("AttackSpeed"));
+        hasTriggered = false;
     }
 
     // OnStateUpdate is called on each Update frame between OnStateEnter and OnStateExit callbacks
     override public void OnStateUpdate(Animator animator, AnimatorStateInfo stateInfo, int layerIndex)
     {
-           if (stateInfo.normalizedTime >= 0.5f && stateInfo.normalizedTime <= 0.75f && !hasTriggered)
+           if (stateInfo.normalizedTime >= time && !hasTriggered && stateInfo.normalizedTime < time + 0.1f)
         {
             UIStuff.ins.overheatDisplayTrigger();
             animator.gameObject.GetComponent<playermovement>().col.enabled = true;
+            if(smashAttack)
+            {
+                animator.SetFloat("smashspeed", 0);
+            }
             hasTriggered = true;
+        }else if (stateInfo.normalizedTime >= time + 0.1f && hasTriggered)
+        {
+            animator.gameObject.GetComponent<playermovement>().col.enabled = false;
+            hasTriggered = false;
         }
     }
 
     // OnStateExit is called when a transition ends and the state machine finishes evaluating this state
     override public void OnStateExit(Animator animator, AnimatorStateInfo stateInfo, int layerIndex)
     {
-        animator.gameObject.GetComponent<playermovement>().col.enabled = false;
+        if (dashAttack)
+        {
+            animator.gameObject.GetComponent<playermovement>().currentState = playermovement.PlayerState.Idle;
+        }
     }
 
     // OnStateMove is called right after Animator.OnAnimatorMove()

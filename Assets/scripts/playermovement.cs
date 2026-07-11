@@ -14,7 +14,7 @@ public class playermovement : MonoBehaviour
     public LayerMask dashLayer;
     public LayerMask grappleLayer;
     private Rigidbody2D rb;
-    private bool[] cooldown = new bool[3]; // Assuming 3 different cooldowns
+    private bool[] cooldown = new bool[20]; // Assuming 20 different cooldowns
     private float speedmulti = 1f;
 
     [Header("Grapple Handoff")]
@@ -32,7 +32,9 @@ public class playermovement : MonoBehaviour
         Moving,
         Dashing,
         Running,
-        Grappling
+        Grappling,
+        Smashing,
+        cooldown
     }
     public PlayerState currentState = PlayerState.Idle;
     private void Awake()
@@ -70,7 +72,19 @@ public class playermovement : MonoBehaviour
     // Update is called once per frame
     void LateUpdate()
     {
-        if (currentState == PlayerState.Dashing) {
+        if(currentState == PlayerState.Smashing){
+        if (cooldown[3] && isGrounded())
+{
+    StartCoroutine(follower.ins.Shake(0.2f, 0.35f));
+    col.enabled = false; // Disable the collider when the player lands
+    currentState = PlayerState.cooldown;
+    GetComponent<Animator>().SetFloat("smashspeed", GetComponent<Animator>().GetFloat("AttackSpeed"));
+
+        // Start cooldown if desired
+    StartCoroutine(Cooldown(3, 1/(2*weapon.attackRate)));
+}else return;
+        }
+        if (currentState == PlayerState.Dashing || currentState == PlayerState.cooldown) {
             return; // Skip movement and other actions while dashing
         }
         if (inputhandler.ins.inputs["Grapple"] && !isGrounded() && !cooldown[2]) {
@@ -141,6 +155,14 @@ public class playermovement : MonoBehaviour
                 }
                 UIStuff.ins.energybar.value -= save.ins.activesave.staminause;
                     cooldown[1] = true;
+            }else if (!isGrounded(1.5f))
+            {
+                if(!cooldown[3])
+                {
+                    currentState = PlayerState.Smashing;
+                    GetComponent<Animator>().SetTrigger("smash");
+                    cooldown[3] = true;
+                }
             }
             else if (!cooldown[0])
             {
@@ -150,7 +172,13 @@ public class playermovement : MonoBehaviour
             }
         }
         FaceTarget();
-    }
+        
+        
+
+
+
+
+            }
 
     private void FaceTarget()
     {
@@ -161,9 +189,9 @@ public class playermovement : MonoBehaviour
         }
     }
 
-    public bool isGrounded() {
-        Debug.DrawRay(transform.position, Vector2.down * 1.1f, Color.red);
-        return Physics2D.Raycast(transform.position, Vector2.down, 1.1f, LayerMask.GetMask("Ground"));
+    public bool isGrounded(float range = 1.1f) {
+        Debug.DrawRay(transform.position, Vector2.down * range, Color.red);
+        return Physics2D.Raycast(transform.position, Vector2.down, range, LayerMask.GetMask("Ground"));
     }
     public void recieved(Collider2D other) {
             Debug.Log("Hit Enemy");
@@ -174,6 +202,10 @@ public class playermovement : MonoBehaviour
 IEnumerator Cooldown(int index, float time) {
         yield return UIStuff.ins.Cooldown(time);
         cooldown[index] = false;
+        if (currentState == PlayerState.cooldown)
+        {
+            currentState = PlayerState.Idle;
+        }
     }
 IEnumerator DashTowards(Vector2 target, bool hit)
 {
@@ -187,12 +219,7 @@ IEnumerator DashTowards(Vector2 target, bool hit)
     }
 
     rb.linearVelocity = Vector2.zero;
-    if (hit) {
-        col.enabled = true;
         GetComponent<Animator>().SetTrigger("dash");
-        yield return follower.ins.Shake(0.1f, 0.25f);
-    }
-    currentState = PlayerState.Idle;
     yield return Cooldown(1, save.ins.activesave.dashCooldown);
 }
 
