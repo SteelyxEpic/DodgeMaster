@@ -1,6 +1,6 @@
 using UnityEngine;
 using System.Collections;
-
+using System.Collections.Generic;
 public class playermovement : MonoBehaviour
 {
     public static playermovement ins;
@@ -16,6 +16,7 @@ public class playermovement : MonoBehaviour
     private Rigidbody2D rb;
     private bool[] cooldown = new bool[20]; // Assuming 20 different cooldowns
     private float speedmulti = 1f;
+    private List<GameObject> withinRange = new List<GameObject>(); // List to keep track of enemies within range
 
     [Header("Grapple Handoff")]
     // How long after releasing the grapple that input movement eases back in
@@ -76,8 +77,8 @@ public class playermovement : MonoBehaviour
         if (cooldown[3] && isGrounded())
 {
     StartCoroutine(follower.ins.Shake(0.2f, 0.35f));
-    col.enabled = false; // Disable the collider when the player lands
     currentState = PlayerState.cooldown;
+    attack();
     GetComponent<Animator>().SetFloat("smashspeed", GetComponent<Animator>().GetFloat("AttackSpeed"));
 
         // Start cooldown if desired
@@ -179,7 +180,23 @@ public class playermovement : MonoBehaviour
 
 
             }
-
+    public void attack() {
+        Debug.Log("Attack Triggered");
+        bool hitEnemy = false;
+        foreach (GameObject enemy in withinRange) {
+            if (enemy != null) {
+                //enemy takes damage here
+                if(!overheated){
+                combo++;
+                UIStuff.ins.comboDisplayTrigger(combo);
+                if(!hitEnemy)StartCoroutine(follower.ins.Shake(0.05f, 0.15f));}
+                hitEnemy = true;
+            }else {
+                // Remove null references from the list
+                withinRange.Remove(enemy);
+            }
+        }
+    }
     private void FaceTarget()
     {
         if (inputhandler.ins.mousepos.x > transform.position.x) {
@@ -194,9 +211,13 @@ public class playermovement : MonoBehaviour
         return Physics2D.Raycast(transform.position, Vector2.down, range, LayerMask.GetMask("Ground"));
     }
     public void recieved(Collider2D other) {
+            withinRange.Add(other.gameObject);
             Debug.Log("Hit Enemy");
-            combo++;
-            UIStuff.ins.comboDisplayTrigger(combo.ToString());
+            
+    }
+    public void revoke(Collider2D other) {
+            withinRange.Remove(other.gameObject);
+            Debug.Log("Enemy Left");
     }
     
 IEnumerator Cooldown(int index, float time) {

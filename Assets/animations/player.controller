@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: '::'
   dashAttack: 0
   smashAttack: 0
-  time: 0.5
+  time: []
 --- !u!1101 &-6255466258182776753
 AnimatorStateTransition:
   m_ObjectHideFlags: 1
@@ -54,7 +54,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: '::'
   dashAttack: 0
   smashAttack: 1
-  time: 0.8
+  time: []
 --- !u!1101 &-1497041120946236585
 AnimatorStateTransition:
   m_ObjectHideFlags: 1
@@ -325,7 +325,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: '::'
   dashAttack: 1
   smashAttack: 0
-  time: 0.1
+  time: []
 --- !u!1101 &8464691532939246508
 AnimatorStateTransition:
   m_ObjectHideFlags: 1

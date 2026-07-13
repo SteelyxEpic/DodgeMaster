@@ -33,10 +33,11 @@ public class UIStuff : MonoBehaviour
     {
         
     }
-    public void comboDisplayTrigger(string text) {
-        comboDisplay.SetActive(true);   
+    public void comboDisplayTrigger(float text) {
+        comboDisplay.SetActive(true);  
+
         comboDisplay.GetComponent<Animator>().SetTrigger("combo");
-        comboDisplay.transform.GetChild(0).GetComponent<TextMeshProUGUI>().text = text;
+        comboDisplay.GetComponent<Animator>().SetFloat("combovalue", text);
     }
     public IEnumerator Cooldown(float time) {
         GameObject cd = Instantiate(cooldownprefab, cooldown.transform);

@@ -4,32 +4,45 @@ public class attack : StateMachineBehaviour
 {
     public bool dashAttack = false;
     public bool smashAttack = false;
-    public float time = 0.5f;
-    bool hasTriggered = false;
+    public float[] time;
+    bool[] hasTriggered = {false};
     // OnStateEnter is called when a transition starts and the state machine starts to evaluate this state
     override public void OnStateEnter(Animator animator, AnimatorStateInfo stateInfo, int layerIndex)
     {  
-        if (smashAttack) animator.SetFloat("smashspeed", animator.GetFloat("AttackSpeed"));
-        hasTriggered = false;
+        hasTriggered = new bool[]{false};
+        if (smashAttack){ 
+            time = new float[]{animator.gameObject.GetComponent<playermovement>().weapon.Stime};
+            animator.SetFloat("smashspeed", animator.GetFloat("AttackSpeed"));
+        }else if (dashAttack){
+            
+            time = new float[]{animator.gameObject.GetComponent<playermovement>().weapon.Dtime};
+            Debug.Log(time[0]);
+        }
+        else
+        {
+            hasTriggered = new bool[animator.gameObject.GetComponent<playermovement>().weapon.comboValues.Length];
+        time = animator.gameObject.GetComponent<playermovement>().weapon.comboValues;
+        }
+
+        
     }
 
     // OnStateUpdate is called on each Update frame between OnStateEnter and OnStateExit callbacks
     override public void OnStateUpdate(Animator animator, AnimatorStateInfo stateInfo, int layerIndex)
     {
-           if (stateInfo.normalizedTime >= time && !hasTriggered && stateInfo.normalizedTime < time + 0.1f)
+        for (int i = 0; i < time.Length; i++)
         {
-            UIStuff.ins.overheatDisplayTrigger();
-            animator.gameObject.GetComponent<playermovement>().col.enabled = true;
-            if(smashAttack)
+            float t = time[i];
+            if (stateInfo.normalizedTime >= t && !hasTriggered[i])
+            {
+                UIStuff.ins.overheatDisplayTrigger();
+                animator.gameObject.GetComponent<playermovement>().attack();
+                if(smashAttack)
             {
                 animator.SetFloat("smashspeed", 0);
             }
-            hasTriggered = true;
-        }else if (stateInfo.normalizedTime >= time + 0.1f && hasTriggered)
-        {
-            animator.gameObject.GetComponent<playermovement>().col.enabled = false;
-            hasTriggered = false;
-        }
+            hasTriggered[i] = true;
+        }}
     }
 
     // OnStateExit is called when a transition ends and the state machine finishes evaluating this state

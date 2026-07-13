@@ -18,5 +18,17 @@ MonoBehaviour:
   range: 2
   attackSpeed: 1
   attackRate: 1
+  comboValues:
+  - 0.2
+  - 0.5
+  - 0.7
+  multiplierValues:
+  - 0.2
+  - 0.4
+  - 1.2
+  dashDistance: 5
+  Dtime: 0.1
+  smashRadius: 3
+  Stime: 0.5
   overheatThreshold: 20
   overheatCoolingTime: 1
