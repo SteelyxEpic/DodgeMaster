@@ -60,6 +60,7 @@ public class playermovement : MonoBehaviour
     public void SetWeapon()
     {
         col.radius = weapon.range;
+        col.offset = weapon.rangeOffset;
         GetComponent<Animator>().SetFloat("AttackSpeed", weapon.attackSpeed);
     }
 
@@ -135,24 +136,24 @@ public class playermovement : MonoBehaviour
         if(inputhandler.ins.inputs["jump"]) if(isGrounded()) {
             rb.AddForce(Vector2.up * save.ins.activesave.jumpstrength, ForceMode2D.Impulse);
         }else if (!cooldown[1] && UIStuff.ins.energybar.value >= save.ins.activesave.staminause) {
-            Debug.DrawRay(transform.position, Vector2.right * Mathf.Sign(rb.linearVelocity.x) * weapon.range * range, Color.red);
-                RaycastHit2D hit = Physics2D.Raycast(transform.position, Vector2.right  * Mathf.Sign(rb.linearVelocity.x), weapon.range * range, dashLayer);
+            Debug.DrawRay(transform.position, Vector2.right * Mathf.Sign(rb.linearVelocity.x) * weapon.dashDistance * range, Color.red);
+                RaycastHit2D hit = Physics2D.Raycast(transform.position, Vector2.right  * Mathf.Sign(rb.linearVelocity.x), weapon.dashDistance * range, dashLayer);
                 if (hit.collider != null) {
                     StartCoroutine(DashTowards(hit.point, true));
                 }else {
-                   StartCoroutine(DashTowards((Vector2)transform.position + Vector2.right * Mathf.Sign(rb.linearVelocity.x) * weapon.range * range, false));
+                   StartCoroutine(DashTowards((Vector2)transform.position + Vector2.right * Mathf.Sign(rb.linearVelocity.x) * weapon.dashDistance * range, false));
                 }
                 UIStuff.ins.energybar.value -= save.ins.activesave.staminause;
                     cooldown[1] = true;
         }
         if (inputhandler.ins.inputs["shoot"] && weapon != null ) {
             if(currentState == PlayerState.Running  && UIStuff.ins.energybar.value >= save.ins.activesave.staminause && !cooldown[1]){
-            Debug.DrawRay(transform.position, Vector2.right * transform.localScale.x * weapon.range * range, Color.red);
-                RaycastHit2D hit = Physics2D.Raycast(transform.position, Vector2.right * transform.localScale.x, weapon.range * range, dashLayer);
+            Debug.DrawRay(transform.position, Vector2.right * transform.localScale.x * weapon.dashDistance * range, Color.red);
+                RaycastHit2D hit = Physics2D.Raycast(transform.position, Vector2.right * transform.localScale.x, weapon.dashDistance * range, dashLayer);
                 if (hit.collider != null) {
                     StartCoroutine(DashTowards(hit.point, true));
                 }else {
-                   StartCoroutine(DashTowards((Vector2)transform.position + Vector2.right * transform.localScale.x * weapon.range * range, false));
+                   StartCoroutine(DashTowards((Vector2)transform.position + Vector2.right * transform.localScale.x * weapon.dashDistance * range, false));
                 }
                 UIStuff.ins.energybar.value -= save.ins.activesave.staminause;
                     cooldown[1] = true;
@@ -181,12 +182,14 @@ public class playermovement : MonoBehaviour
 
             }
     public void attack() {
+        transform.position = Vector2.MoveTowards(transform.position, (Vector2)transform.position + Vector2.right * Mathf.Sign(transform.localScale.x), weapon.knockoutForce.x);
         Debug.Log("Attack Triggered");
         bool hitEnemy = false;
         foreach (GameObject enemy in withinRange) {
             if (enemy != null) {
                 //enemy takes damage here
                 if(!overheated){
+                    
                 combo++;
                 UIStuff.ins.comboDisplayTrigger(combo);
                 if(!hitEnemy)StartCoroutine(follower.ins.Shake(0.05f, 0.15f));}

@@ -7,6 +7,8 @@ public class Weapon : ScriptableObject
     public string description;
     public int damage;
     public float range;
+    public Vector2 rangeOffset;
+    public Vector2 knockoutForce;
     public float attackSpeed = 1f;
     public float attackRate = 1f;
     [Header("Combo Settings")]

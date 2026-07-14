@@ -1,4 +1,5 @@
 using UnityEngine;
+using TMPro;
 
 public class cooling : StateMachineBehaviour
 {
@@ -17,8 +18,10 @@ public class cooling : StateMachineBehaviour
     // OnStateExit is called when a transition ends and the state machine finishes evaluating this state
     override public void OnStateExit(Animator animator, AnimatorStateInfo stateInfo, int layerIndex)
     {
+        
         if (stateInfo.normalizedTime >= 1)
         {
+            animator.transform.GetChild(0).GetComponent<TextMeshProUGUI>().text = "0";
             playermovement.ins.combo = 0;
             animator.gameObject.SetActive(false);
         }
