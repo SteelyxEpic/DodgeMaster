@@ -16,8 +16,11 @@ MonoBehaviour:
   description: 
   damage: 0
   range: 2
+  rangeOffset: {x: 1, y: 0}
+  knockoutForce: {x: 0.5, y: 0}
   attackSpeed: 1
   attackRate: 1
+  stunDuration: 0.5
   comboValues:
   - 0.2
   - 0.5
@@ -31,4 +34,4 @@ MonoBehaviour:
   smashRadius: 3
   Stime: 0.5
   overheatThreshold: 20
-  overheatCoolingTime: 1
+  overheatCoolingTime: 4

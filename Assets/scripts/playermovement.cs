@@ -13,6 +13,7 @@ public class playermovement : MonoBehaviour
     public Weapon weapon;
     public LayerMask dashLayer;
     public LayerMask grappleLayer;
+    public LayerMask KnockoutLayer;
     private Rigidbody2D rb;
     private bool[] cooldown = new bool[20]; // Assuming 20 different cooldowns
     private float speedmulti = 1f;
@@ -35,7 +36,8 @@ public class playermovement : MonoBehaviour
         Running,
         Grappling,
         Smashing,
-        cooldown
+        cooldown,
+        Scooldown
     }
     public PlayerState currentState = PlayerState.Idle;
     private void Awake()
@@ -78,7 +80,7 @@ public class playermovement : MonoBehaviour
         if (cooldown[3] && isGrounded())
 {
     StartCoroutine(follower.ins.Shake(0.2f, 0.35f));
-    currentState = PlayerState.cooldown;
+    currentState = PlayerState.Scooldown;
     attack();
     GetComponent<Animator>().SetFloat("smashspeed", GetComponent<Animator>().GetFloat("AttackSpeed"));
 
@@ -86,7 +88,7 @@ public class playermovement : MonoBehaviour
     StartCoroutine(Cooldown(3, 1/(2*weapon.attackRate)));
 }else return;
         }
-        if (currentState == PlayerState.Dashing || currentState == PlayerState.cooldown) {
+        if (currentState == PlayerState.Dashing || currentState == PlayerState.cooldown || currentState == PlayerState.Scooldown) {
             return; // Skip movement and other actions while dashing
         }
         if (inputhandler.ins.inputs["Grapple"] && !isGrounded() && !cooldown[2]) {
@@ -182,16 +184,22 @@ public class playermovement : MonoBehaviour
 
             }
     public void attack() {
-        transform.position = Vector2.MoveTowards(transform.position, (Vector2)transform.position + Vector2.right * Mathf.Sign(transform.localScale.x), weapon.knockoutForce.x);
+        currentState = PlayerState.cooldown;
+        RaycastHit2D hit = Physics2D.Raycast(transform.position, Vector2.right * Mathf.Sign(transform.localScale.x), weapon.knockoutForce.x + 1.5f, KnockoutLayer);
+        if (hit.collider == null) {
+            transform.position = Vector2.MoveTowards(transform.position, (Vector2)transform.position + Vector2.right * Mathf.Sign(transform.localScale.x), weapon.knockoutForce.x);
+        }
         Debug.Log("Attack Triggered");
         bool hitEnemy = false;
         foreach (GameObject enemy in withinRange) {
             if (enemy != null) {
+                enemy.GetComponent<enemy>().TakeDamage(weapon.damage * (overheated ? 0.5f : 1f));
                 //enemy takes damage here
                 if(!overheated){
                     
                 combo++;
                 UIStuff.ins.comboDisplayTrigger(combo);
+                enemy.GetComponent<enemy>().stunnedEnemy(weapon.stunDuration, hit.collider == null);
                 if(!hitEnemy)StartCoroutine(follower.ins.Shake(0.05f, 0.15f));}
                 hitEnemy = true;
             }else {
@@ -226,7 +234,7 @@ public class playermovement : MonoBehaviour
 IEnumerator Cooldown(int index, float time) {
         yield return UIStuff.ins.Cooldown(time);
         cooldown[index] = false;
-        if (currentState == PlayerState.cooldown)
+        if (currentState == PlayerState.Scooldown)
         {
             currentState = PlayerState.Idle;
         }

@@ -37,6 +37,7 @@ public class attack : StateMachineBehaviour
             {
                 UIStuff.ins.overheatDisplayTrigger();
                 animator.gameObject.GetComponent<playermovement>().attack();
+
                 if(smashAttack)
             {
                 animator.SetFloat("smashspeed", 0);
@@ -48,6 +49,7 @@ public class attack : StateMachineBehaviour
     // OnStateExit is called when a transition ends and the state machine finishes evaluating this state
     override public void OnStateExit(Animator animator, AnimatorStateInfo stateInfo, int layerIndex)
     {
+        animator.gameObject.GetComponent<playermovement>().currentState = playermovement.PlayerState.Idle;
         if (dashAttack)
         {
             animator.gameObject.GetComponent<playermovement>().currentState = playermovement.PlayerState.Idle;

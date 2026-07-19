@@ -11,6 +11,7 @@ public class Weapon : ScriptableObject
     public Vector2 knockoutForce;
     public float attackSpeed = 1f;
     public float attackRate = 1f;
+    public float stunDuration = 0.5f;
     [Header("Combo Settings")]
     public float[] comboValues = {0.5f};
     public float[] multiplierValues = {1f};
