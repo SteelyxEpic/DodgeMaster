@@ -35,13 +35,17 @@ public class attack : StateMachineBehaviour
             float t = time[i];
             if (stateInfo.normalizedTime >= t && !hasTriggered[i])
             {
-                UIStuff.ins.overheatDisplayTrigger();
-                animator.gameObject.GetComponent<playermovement>().attack();
+                
 
                 if(smashAttack)
             {
-                animator.SetFloat("smashspeed", 0);
-            }
+                if(animator.gameObject.GetComponent<playermovement>().currentState == playermovement.PlayerState.Smashing)animator.SetFloat("smashspeed", 0);
+                }
+                else
+                {
+                    UIStuff.ins.overheatDisplayTrigger();
+                    animator.gameObject.GetComponent<playermovement>().attack();
+                }
             hasTriggered[i] = true;
         }}
     }

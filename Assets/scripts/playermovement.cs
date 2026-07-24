@@ -76,6 +76,7 @@ public class playermovement : MonoBehaviour
     // Update is called once per frame
     void LateUpdate()
     {
+        GetComponent<Animator>().SetBool("Idle", currentState == PlayerState.Idle);
         if(currentState == PlayerState.Smashing){
         if (cooldown[3] && isGrounded())
 {
@@ -159,13 +160,14 @@ public class playermovement : MonoBehaviour
                 }
                 UIStuff.ins.energybar.value -= save.ins.activesave.staminause;
                     cooldown[1] = true;
-            }else if (!isGrounded(1.5f))
+            }else if (!isGrounded(1.3f))
             {
                 if(!cooldown[3])
                 {
                     currentState = PlayerState.Smashing;
                     GetComponent<Animator>().SetTrigger("smash");
                     cooldown[3] = true;
+                    return;
                 }
             }
             else if (!cooldown[0])
@@ -184,7 +186,7 @@ public class playermovement : MonoBehaviour
 
             }
     public void attack() {
-        currentState = PlayerState.cooldown;
+        if(currentState != PlayerState.Scooldown)currentState = PlayerState.cooldown;
         RaycastHit2D hit = Physics2D.Raycast(transform.position, Vector2.right * Mathf.Sign(transform.localScale.x), weapon.knockoutForce.x + 1.5f, KnockoutLayer);
         if (hit.collider == null) {
             transform.position = Vector2.MoveTowards(transform.position, (Vector2)transform.position + Vector2.right * Mathf.Sign(transform.localScale.x), weapon.knockoutForce.x);
@@ -210,16 +212,23 @@ public class playermovement : MonoBehaviour
     }
     private void FaceTarget()
     {
+        if(currentState == PlayerState.Idle){
         if (inputhandler.ins.mousepos.x > transform.position.x) {
             transform.localScale = new Vector3(1, 1, 1);
         } else {
             transform.localScale = new Vector3(-1, 1, 1);
+        }}else {
+            if (rb.linearVelocity.x > 0) {
+                transform.localScale = new Vector3(1, 1, 1);
+            } else if (rb.linearVelocity.x < 0) {
+                transform.localScale = new Vector3(-1, 1, 1);
+            }
         }
     }
 
     public bool isGrounded(float range = 1.1f) {
-        Debug.DrawRay(transform.position, Vector2.down * range, Color.red);
-        return Physics2D.Raycast(transform.position, Vector2.down, range, LayerMask.GetMask("Ground"));
+        Debug.DrawRay(transform.position, Vector2.down * range * 2f, Color.red);
+         return Physics2D.Raycast(transform.position, Vector2.down, range* 2f, LayerMask.GetMask("Ground"));
     }
     public void recieved(Collider2D other) {
             withinRange.Add(other.gameObject);

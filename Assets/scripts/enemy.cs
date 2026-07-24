@@ -29,7 +29,6 @@ public class enemy : MonoBehaviour
         Vector2 direction = target.transform.position - transform.position;
         if(Vector2.Distance(transform.position, target.transform.position) > weapon.range)
         {
-            Debug.Log("Moving towards target");
             rb.linearVelocity = new Vector2(Mathf.Sign(direction.x) * moveSpeed, rb.linearVelocity.y);
         }else
         {
